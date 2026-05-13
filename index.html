@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Follow UP Cardapio Web</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple-50: #EEEDFE;
+    --purple-100: #CECBF6;
+    --purple-200: #AFA9EC;
+    --purple-400: #7F77DD;
+    --purple-500: #6B62D4;
+    --purple-600: #534AB7;
+    --purple-700: #4540A0;
+    --purple-800: #3C3489;
+    --purple-900: #26215C;
+    --accent: #B09FFF;
+    --surface: #F7F6FF;
+    --surface2: #EFEDFC;
+    --border: rgba(83, 74, 183, 0.18);
+    --border-strong: rgba(83, 74, 183, 0.35);
+    --text-primary: #1a1730;
+    --text-muted: #6e6a94;
+    --success: #1D9E75;
+    --success-bg: #E1F5EE;
+    --danger: #D85A30;
+    --danger-bg: #FAECE7;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(83,74,183,0.10), 0 1px 4px rgba(83,74,183,0.07);
+    --shadow-lg: 0 12px 48px rgba(83,74,183,0.18), 0 2px 8px rgba(83,74,183,0.10);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: linear-gradient(135deg, #1a1030 0%, #2d1f6e 40%, #3C3489 70%, #26215C 100%);
+    min-height: 100vh; padding: 2rem 1rem;
+    position: relative; overflow-x: hidden;
+  }
+
+  body::before {
+    content: ''; position: fixed; top: -20%; right: -10%;
+    width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(176,159,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  body::after {
+    content: ''; position: fixed; bottom: -10%; left: -5%;
+    width: 400px; height: 400px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(127,119,221,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .page-wrapper { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .header {
+    text-align: center; margin-bottom: 1.5rem;
+    padding: 2.5rem 2rem 2rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(176,159,255,0.15);
+    border-radius: 20px; backdrop-filter: blur(10px);
+    position: relative; overflow: hidden;
+  }
+
+  .header::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, #B09FFF, #7F77DD, #B09FFF, transparent);
+  }
+
+  .header-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--purple-400), var(--purple-600));
+    border-radius: 18px; margin-bottom: 1rem;
+    box-shadow: 0 8px 24px rgba(83,74,183,0.4);
+  }
+
+  .header-icon svg { width: 32px; height: 32px; stroke: white; stroke-width: 1.5; fill: none; }
+  .header h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: white; letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+  .header h1 span { color: var(--accent); }
+  .header p { font-size: 0.95rem; color: rgba(255,255,255,0.55); font-weight: 300; letter-spacing: 0.03em; }
+
+  /* CONFIG BANNER */
+  .config-banner {
+    display: none; align-items: center; gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    background: rgba(216,90,48,0.15);
+    border: 1px solid rgba(216,90,48,0.4);
+    border-radius: 12px; margin-bottom: 1.25rem;
+    backdrop-filter: blur(10px);
+  }
+  .config-banner.visible { display: flex; }
+  .config-banner svg { width: 20px; height: 20px; stroke: #f4a070; stroke-width: 2; fill: none; flex-shrink: 0; }
+  .config-banner p { font-size: 0.85rem; color: #f4a070; }
+  .config-banner strong { color: #ffcbb0; }
+
+  /* TABS */
+  .tabs-bar {
+    display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(176,159,255,0.12);
+    border-radius: 14px; padding: 6px; backdrop-filter: blur(10px);
+  }
+
+  .tab-btn {
+    flex: 1; padding: 0.7rem 1.5rem; border: none; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700;
+    letter-spacing: 0.04em; cursor: pointer; transition: all 0.22s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    color: rgba(255,255,255,0.5); background: transparent;
+  }
+  .tab-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+  .tab-btn.active { background: linear-gradient(135deg, var(--purple-500), var(--purple-800)); color: white; box-shadow: 0 4px 16px rgba(83,74,183,0.4); }
+  .tab-btn:not(.active):hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8); }
+
+  .badge {
+    background: rgba(176,159,255,0.3); color: var(--accent);
+    font-size: 0.72rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 50px;
+    font-family: 'DM Sans', sans-serif; min-width: 22px; text-align: center;
+  }
+  .tab-btn.active .badge { background: rgba(255,255,255,0.2); color: white; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* FORM CARD */
+  .form-card { background: white; border-radius: 20px; padding: 2.5rem; box-shadow: var(--shadow-lg); position: relative; overflow: hidden; }
+  .form-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--purple-400), var(--purple-600), var(--purple-800)); }
+
+  .section { margin-bottom: 2rem; }
+
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--purple-500);
+    padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+    margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;
+  }
+  .section-title svg { width: 14px; height: 14px; stroke: var(--purple-400); stroke-width: 2; fill: none; flex-shrink: 0; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .col-span-2 { grid-column: span 2; }
+
+  @media (max-width: 600px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .col-span-2 { grid-column: span 1; }
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.02em; }
+  label .required { color: var(--purple-400); margin-left: 2px; }
+
+  input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea {
+    width: 100%; padding: 0.65rem 0.9rem;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--text-primary);
+    background: var(--surface); transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    outline: none; appearance: none;
+  }
+  input:focus, textarea:focus { border-color: var(--purple-400); background: white; box-shadow: 0 0 0 3px rgba(127,119,221,0.15); }
+  input::placeholder, textarea::placeholder { color: #b0aec8; font-weight: 300; }
+  textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+
+  .silo-group { display: flex; gap: 0.75rem; }
+  .silo-option { display: none; }
+  .silo-label {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 0.85rem 0.5rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 0.85rem; font-weight: 600; font-family: 'Syne', sans-serif;
+    color: var(--text-muted); cursor: pointer; background: var(--surface);
+    transition: all 0.22s; text-align: center; user-select: none; letter-spacing: 0.04em;
+  }
+  .silo-label small { font-family: 'DM Sans', sans-serif; font-size: 0.7rem; font-weight: 300; letter-spacing: 0; margin-top: 2px; opacity: 0.7; }
+  .silo-label:hover { border-color: var(--purple-400); color: var(--purple-600); background: var(--purple-50); }
+  .silo-option:checked + .silo-label { background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); border-color: var(--purple-700); color: white; box-shadow: 0 4px 16px rgba(83,74,183,0.35); }
+  .silo-option:checked + .silo-label small { opacity: 0.8; }
+
+  .submit-area { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); align-items: center; }
+
+  .btn-clear {
+    padding: 0.7rem 1.5rem; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm);
+    background: transparent; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+    color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+  }
+  .btn-clear:hover { background: var(--surface2); color: var(--purple-600); border-color: var(--purple-400); }
+
+  .btn-submit {
+    padding: 0.75rem 2rem; border: none; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--purple-500), var(--purple-800));
+    font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 700;
+    color: white; cursor: pointer; letter-spacing: 0.04em;
+    transition: all 0.22s; box-shadow: 0 4px 16px rgba(83,74,183,0.4);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(83,74,183,0.5); }
+  .btn-submit:active { transform: translateY(0); }
+  .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+  .btn-submit svg { width: 16px; height: 16px; stroke: white; stroke-width: 2.5; fill: none; }
+
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  .btn-submit.loading .spinner { display: block; }
+  .btn-submit.loading .btn-icon { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .toast { display: none; position: fixed; bottom: 2rem; right: 2rem; color: white; padding: 1rem 1.5rem; border-radius: var(--radius); font-size: 0.9rem; font-weight: 500; box-shadow: var(--shadow-lg); z-index: 999; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
+  .toast.show { display: flex; }
+  .toast.success { background: var(--purple-800); }
+  .toast.error { background: #b23a1a; }
+  .toast svg { width: 20px; height: 20px; stroke-width: 2.5; fill: none; flex-shrink: 0; }
+  .toast.success svg { stroke: #9FE1CB; }
+  .toast.error svg { stroke: #ffb4a0; }
+
+  @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .footer { text-align: center; margin-top: 1.5rem; font-size: 0.78rem; color: rgba(255,255,255,0.3); letter-spacing: 0.04em; }
+  .char-count { font-size: 0.72rem; color: #b0aec8; text-align: right; margin-top: 2px; }
+
+  /* PAINEL */
+  .panel-card { background: white; border-radius: 20px; box-shadow: var(--shadow-lg); position: relative; overflow: hidden; }
+  .panel-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--purple-400), var(--purple-600), var(--purple-800)); }
+
+  .stats-row { display: grid; grid-template-columns: 1fr; border-bottom: 1px solid var(--border); }
+  .stat-item { padding: 1.25rem 1.5rem; text-align: center; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--purple-600); }
+  .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+  .panel-header { padding: 1.75rem 2rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .panel-header-left h2 { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--text-primary); }
+  .panel-header-left p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+  .panel-search { display: flex; align-items: center; gap: 8px; padding: 0.55rem 0.9rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); flex: 1; min-width: 200px; max-width: 300px; }
+  .panel-search svg { width: 15px; height: 15px; stroke: var(--text-muted); stroke-width: 2; fill: none; flex-shrink: 0; }
+  .panel-search input { border: none; background: transparent; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text-primary); width: 100%; padding: 0; }
+  .panel-search input::placeholder { color: #b0aec8; }
+
+  .btn-refresh { padding: 0.55rem 1rem; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; color: var(--purple-600); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn-refresh:hover { background: var(--purple-50); }
+  .btn-refresh svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; }
+  .btn-refresh.spinning svg { animation: spin 0.7s linear infinite; }
+
+  .loading-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .loading-spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--purple-400); border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+  .empty-state { padding: 4rem 2rem; text-align: center; color: var(--text-muted); }
+  .empty-icon { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: var(--surface2); border-radius: 18px; margin-bottom: 1rem; }
+  .empty-icon svg { width: 28px; height: 28px; stroke: var(--purple-400); stroke-width: 1.5; fill: none; }
+  .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem; }
+  .empty-state p { font-size: 0.85rem; }
+
+  .records-list { padding: 1rem 1.5rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  .record-card { border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
+  .record-card:hover { border-color: var(--purple-200); box-shadow: var(--shadow); }
+
+  .record-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; cursor: pointer; background: var(--surface); gap: 1rem; flex-wrap: wrap; user-select: none; }
+  .record-header:hover { background: var(--surface2); }
+  .record-main-info { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0; }
+  .record-avatar { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; background: linear-gradient(135deg, var(--purple-400), var(--purple-700)); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 800; color: white; }
+  .record-name { font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .record-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
+  .record-meta { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; flex-wrap: wrap; }
+  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 600; font-family: 'Syne', sans-serif; letter-spacing: 0.04em; }
+  .tag-silo { background: var(--purple-50); color: var(--purple-600); }
+  .record-date { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+  .record-date svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; }
+  .record-chevron { width: 20px; height: 20px; flex-shrink: 0; stroke: var(--text-muted); stroke-width: 2; fill: none; transition: transform 0.25s; }
+  .record-card.expanded .record-chevron { transform: rotate(180deg); }
+  .record-card.expanded .record-header { background: var(--purple-50); border-bottom: 1px solid var(--border); }
+  .record-detail { display: none; padding: 1.25rem 1.25rem 1.5rem; background: white; }
+  .record-card.expanded .record-detail { display: block; }
+
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .detail-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .detail-value { font-size: 0.88rem; color: var(--text-primary); font-weight: 500; word-break: break-word; }
+  .detail-value.empty { color: #b0aec8; font-style: italic; font-weight: 300; }
+  .detail-desc { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .detail-desc .detail-label { margin-bottom: 6px; }
+  .detail-desc .detail-value { font-size: 0.875rem; line-height: 1.65; background: var(--surface); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+
+  @media (max-width: 600px) {
+    .panel-header { flex-direction: column; align-items: flex-start; }
+    .panel-search { max-width: 100%; }
+    .detail-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+    </div>
+    <h1>Follow UP <span>Cardapio Web</span></h1>
+    <p>Preencha todos os campos abaixo para registrar o atendimento</p>
+  </div>
+
+  <div class="config-banner" id="configBanner">
+    <svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <p><strong>Atenção:</strong> Cole a URL do seu Google Apps Script na variável <strong>APPS_SCRIPT_URL</strong> no início do JavaScript deste arquivo para ativar a integração.</p>
+  </div>
+
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('form', this)">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Registrar Atendimento
+    </button>
+    <button class="tab-btn" onclick="switchTab('panel', this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Painel de Registros
+      <span class="badge" id="recordsBadge">—</span>
+    </button>
+  </div>
+
+  <!-- TAB FORM -->
+  <div id="tab-form" class="tab-content active">
+    <div class="form-card">
+      <form id="mainForm" novalidate>
+
+        <div class="section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Dados do Cliente
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="nome">Nome completo <span class="required">*</span></label>
+              <input type="text" id="nome" name="nome" placeholder="Nome do cliente" required>
+            </div>
+            <div class="field">
+              <label for="telefone">Telefone <span class="required">*</span></label>
+              <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
+            </div>
+            <div class="field col-span-2">
+              <label for="email">E-mail <span class="required">*</span></label>
+              <input type="email" id="email" name="email" placeholder="cliente@exemplo.com.br" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Informações do Atendimento
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="data">Data do atendimento <span class="required">*</span></label>
+              <input type="date" id="data" name="data" required>
+            </div>
+            <div class="field">
+              <label for="portal">Portal <span class="required">*</span></label>
+              <input type="text" id="portal" name="portal" placeholder="Ex: Portal Parceiro, TOTVS..." required>
+            </div>
+            <div class="field col-span-2">
+              <label for="atendido_por">Atendido por <span class="required">*</span></label>
+              <input type="text" id="atendido_por" name="atendido_por" placeholder="Nome do atendente responsável" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24"><path d="M3 9h18M3 15h18M12 3v18M7 3v18M17 3v18"/></svg>
+            Silo
+          </div>
+          <div class="field">
+            <label>Selecione o nível de atendimento <span class="required">*</span></label>
+            <div class="silo-group">
+              <input type="radio" class="silo-option" name="silo" id="silo_n1" value="N1" required>
+              <label class="silo-label" for="silo_n1">N1<small>Nível 1</small></label>
+              <input type="radio" class="silo-option" name="silo" id="silo_n2" value="N2">
+              <label class="silo-label" for="silo_n2">N2<small>Nível 2</small></label>
+              <input type="radio" class="silo-option" name="silo" id="silo_parcerias" value="Parcerias">
+              <label class="silo-label" for="silo_parcerias">Parcerias<small>Parceiros</small></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24"><path d="m22 16.92-2.72-2.72a2 2 0 0 0-2.83 0l-1.25 1.25a16 16 0 0 1-6.9-6.9L9.55 7.3a2 2 0 0 0 0-2.83L6.83 1.75A2 2 0 0 0 4 1.75L2.29 3.46A4 4 0 0 0 2 5.38c.18 9.42 7.2 16.44 16.62 16.62a4 4 0 0 0 1.92-.29l1.71-1.71a2 2 0 0 0 0-2.08Z"/></svg>
+            Contatos
+          </div>
+          <div class="grid-2">
+            <div class="field col-span-2">
+              <label for="whatsapp">Contato WhatsApp</label>
+              <input type="tel" id="whatsapp" name="whatsapp" placeholder="(00) 00000-0000">
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Descrição do Atendimento
+          </div>
+          <div class="field">
+            <label for="descricao">Descrição detalhada <span class="required">*</span></label>
+            <textarea id="descricao" name="descricao" placeholder="Descreva com detalhes o que foi tratado no atendimento..." maxlength="2000" required></textarea>
+            <div class="char-count"><span id="charCount">0</span> / 2000 caracteres</div>
+          </div>
+        </div>
+
+        <div class="submit-area">
+          <button type="button" class="btn-clear" onclick="clearForm()">Limpar campos</button>
+          <button type="submit" class="btn-submit" id="btnSubmit">
+            <span class="spinner"></span>
+            <svg class="btn-icon" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            Registrar Atendimento
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TAB PAINEL -->
+  <div id="tab-panel" class="tab-content">
+    <div class="panel-card">
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-label">Total de Registros</div>
+        </div>
+      </div>
+
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <h2>Atendimentos Registrados</h2>
+          <p id="panelSubtitle">Carregando...</p>
+        </div>
+        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+          <div class="panel-search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="searchInput" placeholder="Buscar por nome, portal..." oninput="filterRecords()">
+          </div>
+          <button class="btn-refresh" id="btnRefresh" onclick="loadRecords()">
+            <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Atualizar
+          </button>
+        </div>
+      </div>
+
+      <div id="recordsContainer">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Carregando registros...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Follow UP Cardapio Web &nbsp;·&nbsp; Todos os campos marcados com * são obrigatórios</div>
+</div>
+
+<div class="toast success" id="toast">
+  <svg viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg>
+  <span id="toastMsg">Atendimento registrado!</span>
+</div>
+
+<script>
+  // =====================================================
+  //  ⚙️  COLE AQUI A URL DO SEU GOOGLE APPS SCRIPT
+  // =====================================================
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/d/{SCRIPT_ID}/usercache';
+  // Substitua {SCRIPT_ID} pela sua ID do Apps Script (veja as instruções abaixo)
+  // =====================================================
+
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('{SCRIPT_ID}')) {
+    document.getElementById('configBanner').classList.add('visible');
+  }
+
+  let allRecords = [];
+
+  // TABS
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'panel') loadRecords();
+  }
+
+  // FORM SETUP
+  document.getElementById('data').valueAsDate = new Date();
+
+  const desc = document.getElementById('descricao');
+  const counter = document.getElementById('charCount');
+  desc.addEventListener('input', () => {
+    counter.textContent = desc.value.length;
+    counter.style.color = desc.value.length > 1800 ? '#D85A30' : '#b0aec8';
+  });
+
+  function maskPhone(el) {
+    el.addEventListener('input', function() {
+      let v = this.value.replace(/\D/g, '').slice(0, 11);
+      if (v.length >= 7) {
+        v = v.length === 11
+          ? `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`
+          : `(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`;
+      } else if (v.length >= 3) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+      else if (v.length >= 1) v = `(${v}`;
+      this.value = v;
+    });
+  }
+  maskPhone(document.getElementById('telefone'));
+  maskPhone(document.getElementById('whatsapp'));
+
+  // SUBMIT
+  document.getElementById('mainForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('{SCRIPT_ID}')) {
+      showToast('Configure a URL do Apps Script primeiro!', 'error'); return;
+    }
+
+    const required = this.querySelectorAll('[required]');
+    let valid = true;
+    required.forEach(el => {
+      if (el.type === 'radio') {
+        const checked = Array.from(this.querySelectorAll(`[name="${el.name}"]`)).some(r => r.checked);
+        if (!checked) { valid = false; el.closest('.field').style.outline = '2px solid #D85A30'; }
+        else el.closest('.field').style.outline = '';
+      } else {
+        if (!el.value.trim()) { valid = false; el.style.borderColor = '#D85A30'; }
+        else el.style.borderColor = '';
+      }
+    });
+
+    if (!valid) { alert('Por favor, preencha todos os campos obrigatórios.'); return; }
+
+    const btn = document.getElementById('btnSubmit');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const payload = Object.fromEntries(new FormData(this));
+    payload.id = Date.now().toString();
+    payload.registrado_em = new Date().toISOString();
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (json.status === 'ok') {
+        showToast('Atendimento registrado com sucesso!', 'success');
+        this.reset();
+        document.getElementById('data').valueAsDate = new Date();
+        counter.textContent = '0';
+        counter.style.color = '#b0aec8';
+      } else {
+        showToast('Erro ao salvar. Tente novamente.', 'error');
+      }
+    } catch {
+      showToast('Erro de conexão. Verifique a URL.', 'error');
+    }
+
+    btn.classList.remove('loading'); btn.disabled = false;
+  });
+
+  function clearForm() {
+    if (!confirm('Deseja limpar todos os campos?')) return;
+    document.getElementById('mainForm').reset();
+    document.getElementById('data').valueAsDate = new Date();
+    counter.textContent = '0'; counter.style.color = '#b0aec8';
+  }
+
+  // TOAST
+  function showToast(msg, type = 'success') {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  // LOAD FROM GOOGLE SHEETS
+  async function loadRecords() {
+    const container = document.getElementById('recordsContainer');
+    const btn = document.getElementById('btnRefresh');
+
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('{SCRIPT_ID}')) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><h3>URL não configurada</h3><p>Cole a URL do Apps Script no JavaScript para ativar o painel.</p></div>`;
+      document.getElementById('panelSubtitle').textContent = 'Aguardando configuração';
+      document.getElementById('statTotal').textContent = '—';
+      document.getElementById('recordsBadge').textContent = '—';
+      return;
+    }
+
+    btn.classList.add('spinning');
+    container.innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><p>Carregando registros...</p></div>`;
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL);
+      const json = await res.json();
+      if (json.status === 'ok') {
+        allRecords = json.records || [];
+        document.getElementById('statTotal').textContent = allRecords.length;
+        document.getElementById('recordsBadge').textContent = allRecords.length;
+        filterRecords();
+      } else throw new Error(json.message);
+    } catch {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h3>Erro ao carregar</h3><p>Verifique se a URL do Apps Script está correta e a implantação está como "Qualquer pessoa".</p></div>`;
+      document.getElementById('panelSubtitle').textContent = 'Erro ao carregar';
+    }
+
+    btn.classList.remove('spinning');
+  }
+
+  function filterRecords() {
+    const query = document.getElementById('searchInput').value.toLowerCase().trim();
+    const filtered = query
+      ? allRecords.filter(r =>
+          ['nome','portal','atendido_por','email','silo','descricao']
+            .some(k => (r[k] || '').toLowerCase().includes(query))
+        )
+      : allRecords;
+
+    document.getElementById('panelSubtitle').textContent =
+      allRecords.length === 0 ? 'Nenhum registro ainda' :
+      query ? `${filtered.length} resultado(s) encontrado(s)` :
+      `${allRecords.length} atendimento(s) registrado(s)`;
+
+    renderRecords(filtered);
+  }
+
+  function formatDate(v) {
+    if (!v) return '—';
+    const s = String(v);
+    if (s.includes('-')) { const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; }
+    return s;
+  }
+
+  function getInitials(name) {
+    if (!name) return '?';
+    return name.trim().split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase();
+  }
+
+  function toggleRecord(id) {
+    document.getElementById('rec-' + id)?.classList.toggle('expanded');
+  }
+
+  function renderRecords(records) {
+    const container = document.getElementById('recordsContainer');
+    const val = v => v ? String(v) : '<span class="empty">Não informado</span>';
+
+    if (allRecords.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg></div><h3>Nenhum atendimento registrado</h3><p>Preencha o formulário na aba "Registrar Atendimento" para começar.</p></div>`;
+      return;
+    }
+
+    if (records.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><h3>Nenhum resultado</h3><p>Tente buscar por outro termo.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="records-list">${records.map(r => `
+      <div class="record-card" id="rec-${r.id}">
+        <div class="record-header" onclick="toggleRecord('${r.id}')">
+          <div class="record-main-info">
+            <div class="record-avatar">${getInitials(r.nome)}</div>
+            <div>
+              <div class="record-name">${r.nome || '—'}</div>
+              <div class="record-sub">${r.email || '—'} · ${r.telefone || '—'}</div>
+            </div>
+          </div>
+          <div class="record-meta">
+            ${r.silo ? `<span class="tag tag-silo">${r.silo}</span>` : ''}
+            <span class="record-date">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              ${formatDate(r.data)}
+            </span>
+          </div>
+          <svg class="record-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <div class="record-detail">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">Atendido por</div><div class="detail-value">${val(r.atendido_por)}</div></div>
+            <div class="detail-item"><div class="detail-label">Portal</div><div class="detail-value">${val(r.portal)}</div></div>
+            <div class="detail-item"><div class="detail-label">Data do Atendimento</div><div class="detail-value">${formatDate(r.data)}</div></div>
+            <div class="detail-item"><div class="detail-label">Silo</div><div class="detail-value">${val(r.silo)}</div></div>
+            <div class="detail-item"><div class="detail-label">Telefone</div><div class="detail-value">${val(r.telefone)}</div></div>
+            <div class="detail-item"><div class="detail-label">WhatsApp</div><div class="detail-value">${val(r.whatsapp)}</div></div>
+          </div>
+          ${r.descricao ? `<div class="detail-desc"><div class="detail-label">Descrição do Atendimento</div><div class="detail-value">${String(r.descricao).replace(/\n/g,'<br>')}</div></div>` : ''}
+        </div>
+      </div>`).join('')}</div>`;
+  }
+</script>
+</body>
+</html>
