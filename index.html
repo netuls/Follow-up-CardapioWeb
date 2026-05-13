@@ -74,6 +74,16 @@
     background: linear-gradient(90deg, transparent, #B09FFF, #7F77DD, #B09FFF, transparent);
   }
 
+  .header-image {
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem; padding: 1rem;
+  }
+
+  .header-image img {
+    max-width: 280px; height: auto; object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(83,74,183,0.2));
+  }
+
   .header-icon {
     display: inline-flex; align-items: center; justify-content: center;
     width: 64px; height: 64px;
@@ -233,16 +243,6 @@
   .validation-alert li { margin-bottom: 4px; padding-left: 20px; position: relative; }
   .validation-alert li::before { content: '•'; position: absolute; left: 0; color: var(--danger); font-weight: bold; }
 
-  .header-image {
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 1.5rem; padding: 1rem;
-  }
-
-  .header-image img {
-    max-width: 180px; height: auto; object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(83,74,183,0.2));
-  }
-
   .footer { text-align: center; margin-top: 1.5rem; font-size: 0.78rem; color: rgba(255,255,255,0.3); letter-spacing: 0.04em; }
   .char-count { font-size: 0.72rem; color: #b0aec8; text-align: right; margin-top: 2px; }
 
@@ -371,7 +371,7 @@
 
   <div class="header">
     <div class="header-image">
-      <img src="data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='30' y='30' width='140' height='140' fill='%239D4EDD' rx='20'/%3E%3Crect x='45' y='45' width='110' height='110' fill='%23FFD60A' rx='15'/%3E%3Cpath d='M85 80 Q85 65 95 65 Q105 65 105 80' fill='%23000000'/%3E%3Ccircle cx='95' cy='75' r='6' fill='white'/%3E%3Cpath d='M80 95 Q90 90 110 100' fill='none' stroke='%239D4EDD' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M75 105 Q85 110 125 105' fill='none' stroke='%239D4EDD' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" alt="Mascote Cardapio" style="max-width: 150px;">
+      <img src="https://i.ibb.co/k8X8C0Q/cardapio-web-logo.png" alt="Mascote Cardapio Web" loading="lazy">
     </div>
     <div class="header-icon">
       <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
@@ -645,23 +645,38 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
 
 <script>
-  // Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyD2AuItmd80QrjOXZ0wHQ2J3g8kKAf3x0",
-    authDomain: "projeto-follow-ea154.firebaseapp.com",
-    projectId: "projeto-follow-ea154",
-    storageBucket: "projeto-follow-ea154.firebaseapp.com",
-    messagingSenderId: "211959712808",
-    appId: "1:211959712808:web:2da01a33cba8271c1839fd"
-  };
-
-  // Inicializar Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
+  let db = null;
   let allRecords = [];
   let recordToDelete = null;
   const SUPERVISOR_PASSWORD = "Cardapinho 2026";
+
+  // Firebase Config - Inicializar quando o script carregar
+  async function initFirebase() {
+    try {
+      const firebaseConfig = {
+        apiKey: "AIzaSyD2AuItmd80QrjOXZ0wHQ2J3g8kKAf3x0",
+        authDomain: "projeto-follow-ea154.firebaseapp.com",
+        projectId: "projeto-follow-ea154",
+        storageBucket: "projeto-follow-ea154.firebaseapp.com",
+        messagingSenderId: "211959712808",
+        appId: "1:211959712808:web:2da01a33cba8271c1839fd"
+      };
+
+      const app = firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      console.log('Firebase inicializado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao inicializar Firebase:', error);
+      showToast('Erro ao conectar com o banco de dados', 'error');
+    }
+  }
+
+  // Aguardar o carregamento do Firebase antes de continuar
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFirebase);
+  } else {
+    initFirebase();
+  }
 
   // TABS
   function switchTab(tab, btn) {
@@ -703,7 +718,6 @@
     const required = form.querySelectorAll('[required]');
     let isValid = true;
 
-    // Limpar estilos anteriores
     form.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
     form.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
     document.getElementById('siloGroup').classList.remove('error');
@@ -730,14 +744,10 @@
           errors.push(`${label.replace(' *', '')} é obrigatório`);
           el.classList.add('error');
           if (errorMsg) errorMsg.style.display = 'flex';
-        } else {
-          el.classList.remove('error');
-          if (errorMsg) errorMsg.style.display = 'none';
         }
       }
     });
 
-    // Mostrar alerta com lista de erros
     const alert = document.getElementById('validationAlert');
     const errorList = document.getElementById('errorList');
     
@@ -756,10 +766,11 @@
   document.getElementById('mainForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    if (!validateForm(this)) return;
+    if (!validateForm(this) || !db) return;
 
     const btn = document.getElementById('btnSubmit');
-    btn.classList.add('loading'); btn.disabled = true;
+    btn.classList.add('loading');
+    btn.disabled = true;
 
     const formData = Object.fromEntries(new FormData(this));
     formData.registrado_em = new Date().toISOString();
@@ -778,14 +789,16 @@
       showToast('Erro ao salvar. Tente novamente.', 'error');
     }
 
-    btn.classList.remove('loading'); btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.disabled = false;
   });
 
   function clearForm() {
     if (!confirm('Deseja limpar todos os campos?')) return;
     document.getElementById('mainForm').reset();
     document.getElementById('data').valueAsDate = new Date();
-    counter.textContent = '0'; counter.style.color = '#b0aec8';
+    counter.textContent = '0';
+    counter.style.color = '#b0aec8';
     document.getElementById('validationAlert').classList.remove('show');
   }
 
@@ -799,6 +812,11 @@
 
   // LOAD FROM FIRESTORE
   async function loadRecords() {
+    if (!db) {
+      showToast('Banco de dados não inicializado', 'error');
+      return;
+    }
+
     const container = document.getElementById('recordsContainer');
     const btn = document.getElementById('btnRefresh');
 
@@ -901,7 +919,7 @@
       return;
     }
 
-    if (!recordToDelete) return;
+    if (!recordToDelete || !db) return;
 
     try {
       await db.collection('atendimentos').doc(recordToDelete).delete();
@@ -939,6 +957,8 @@
       return;
     }
 
+    if (!db) return;
+
     const batch = db.batch();
     allRecords.forEach(record => {
       batch.delete(db.collection('atendimentos').doc(record.id));
@@ -956,6 +976,8 @@
   }
 
   async function updateStatus(id, newStatus) {
+    if (!db) return;
+
     try {
       await db.collection('atendimentos').doc(id).update({ status: newStatus });
       showToast(`Status atualizado para ${newStatus}`, 'success');
@@ -1027,7 +1049,7 @@
     }).join('')}</div>`;
   }
 
-  // Event listeners para fechar modals ao clicar fora
+  // Event listeners para fechar modals
   document.getElementById('deleteModal').addEventListener('click', (e) => {
     if (e.target === document.getElementById('deleteModal')) closeDeleteModal();
   });
