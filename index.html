@@ -441,11 +441,11 @@
   <span id="toastMsg">Atendimento registrado!</span>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+<!-- Firebase SDK v9+ (Modular) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-<script>
   // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyD2AuItmd80QrjOXZ0wHQ2J3g8kKAf3x0",
@@ -456,11 +456,26 @@
     appId: "1:211959712808:web:2da01a33cba8271c1839fd"
   };
 
-  // Inicializar Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
+  let db;
   let allRecords = [];
+
+  // Inicializar Firebase
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    console.log("Firebase inicializado com sucesso");
+  } catch (error) {
+    console.error("Erro ao inicializar Firebase:", error);
+    showToast("Erro ao conectar ao banco de dados", "error");
+  }
+
+  // Expor funções globais
+  window.switchTab = switchTab;
+  window.loadRecords = loadRecords;
+  window.filterRecords = filterRecords;
+  window.clearForm = clearForm;
+  window.toggleRecord = toggleRecord;
+  window.showToast = showToast;
 
   // TABS
   function switchTab(tab, btn) {
@@ -500,6 +515,11 @@
   document.getElementById('mainForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
+    if (!db) {
+      showToast("Banco de dados não inicializado", "error");
+      return;
+    }
+
     const required = this.querySelectorAll('[required]');
     let valid = true;
     required.forEach(el => {
@@ -522,7 +542,7 @@
     formData.registrado_em = new Date().toISOString();
 
     try {
-      await db.collection('atendimentos').add(formData);
+      await addDoc(collection(db, 'atendimentos'), formData);
       showToast('Atendimento registrado com sucesso!', 'success');
       this.reset();
       document.getElementById('data').valueAsDate = new Date();
@@ -553,6 +573,11 @@
 
   // LOAD FROM FIRESTORE
   async function loadRecords() {
+    if (!db) {
+      showToast("Banco de dados não inicializado", "error");
+      return;
+    }
+
     const container = document.getElementById('recordsContainer');
     const btn = document.getElementById('btnRefresh');
 
@@ -560,7 +585,8 @@
     container.innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><p>Carregando registros...</p></div>`;
 
     try {
-      const snapshot = await db.collection('atendimentos').orderBy('registrado_em', 'desc').get();
+      const q = query(collection(db, 'atendimentos'), orderBy('registrado_em', 'desc'));
+      const snapshot = await getDocs(q);
       allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       document.getElementById('statTotal').textContent = allRecords.length;
       document.getElementById('recordsBadge').textContent = allRecords.length;
