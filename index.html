@@ -85,20 +85,6 @@
   .header h1 span { color: var(--accent); }
   .header p { font-size: 0.95rem; color: rgba(255,255,255,0.55); font-weight: 300; letter-spacing: 0.03em; }
 
-  /* CONFIG BANNER */
-  .config-banner {
-    display: none; align-items: center; gap: 0.75rem;
-    padding: 0.85rem 1.25rem;
-    background: rgba(216,90,48,0.15);
-    border: 1px solid rgba(216,90,48,0.4);
-    border-radius: 12px; margin-bottom: 1.25rem;
-    backdrop-filter: blur(10px);
-  }
-  .config-banner.visible { display: flex; }
-  .config-banner svg { width: 20px; height: 20px; stroke: #f4a070; stroke-width: 2; fill: none; flex-shrink: 0; }
-  .config-banner p { font-size: 0.85rem; color: #f4a070; }
-  .config-banner strong { color: #ffcbb0; }
-
   /* TABS */
   .tabs-bar {
     display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
@@ -300,11 +286,6 @@
     <p>Preencha todos os campos abaixo para registrar o atendimento</p>
   </div>
 
-  <div class="config-banner" id="configBanner">
-    <svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    <p><strong>Atenção:</strong> Cole a URL do seu Google Apps Script na variável <strong>APPS_SCRIPT_URL</strong> no início do JavaScript deste arquivo para ativar a integração.</p>
-  </div>
-
   <div class="tabs-bar">
     <button class="tab-btn active" onclick="switchTab('form', this)">
       <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -463,22 +444,26 @@
   <span id="toastMsg">Atendimento registrado!</span>
 </div>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+
 <script>
   // =====================================================
-  //  ⚙️  COLE AQUI A URL DO SEU GOOGLE APPS SCRIPT
+  //  🔥 CONFIGURAÇÃO DO FIREBASE
   // =====================================================
-  const APPS_SCRIPT_URL = '';
-  // Exemplo: 'https://script.google.com/macros/d/AKfycbxXXXXXXXXXXXXXXX/usercache'
-  // =====================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyB2AuImd80QJOXz0wHQ2J3g8kKAf3x0",
+    authDomain: "projeto-follow-ea154.firebaseapp.com",
+    projectId: "projeto-follow-ea154",
+    storageBucket: "projeto-follow-ea154.firebasestorage.app",
+    messagingSenderId: "211959712808",
+    appId: "1:211959712808:web:2da01a33cba8271c18391d"
+  };
 
-  // Valida se a URL foi configurada
-  function isURLConfigured() {
-    return APPS_SCRIPT_URL && APPS_SCRIPT_URL.trim().length > 0 && !APPS_SCRIPT_URL.includes('COLE') && !APPS_SCRIPT_URL.includes('{');
-  }
-
-  if (!isURLConfigured()) {
-    document.getElementById('configBanner').classList.add('visible');
-  }
+  // Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
   let allRecords = [];
 
@@ -520,11 +505,6 @@
   document.getElementById('mainForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    if (!isURLConfigured()) {
-      showToast('Configure a URL do Apps Script primeiro!', 'error');
-      return;
-    }
-
     const required = this.querySelectorAll('[required]');
     let valid = true;
     required.forEach(el => {
@@ -544,24 +524,18 @@
     btn.classList.add('loading'); btn.disabled = true;
 
     const payload = Object.fromEntries(new FormData(this));
-    payload.id = Date.now().toString();
     payload.registrado_em = new Date().toISOString();
 
     try {
-      const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-      const json = await res.json();
-      if (json.status === 'ok') {
-        showToast('Atendimento registrado com sucesso!', 'success');
-        this.reset();
-        document.getElementById('data').valueAsDate = new Date();
-        counter.textContent = '0';
-        counter.style.color = '#b0aec8';
-      } else {
-        showToast('Erro ao salvar. Tente novamente.', 'error');
-      }
+      await db.collection('atendimentos').add(payload);
+      showToast('Atendimento registrado com sucesso!', 'success');
+      this.reset();
+      document.getElementById('data').valueAsDate = new Date();
+      counter.textContent = '0';
+      counter.style.color = '#b0aec8';
     } catch (error) {
       console.error('Erro:', error);
-      showToast('Erro de conexão. Verifique a URL.', 'error');
+      showToast('Erro ao salvar. Tente novamente.', 'error');
     }
 
     btn.classList.remove('loading'); btn.disabled = false;
@@ -582,34 +556,27 @@
     setTimeout(() => toast.classList.remove('show'), 3500);
   }
 
-  // LOAD FROM GOOGLE SHEETS
+  // LOAD FROM FIREBASE
   async function loadRecords() {
     const container = document.getElementById('recordsContainer');
     const btn = document.getElementById('btnRefresh');
-
-    if (!isURLConfigured()) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><h3>URL não configurada</h3><p>Cole a URL do Apps Script no JavaScript para ativar o painel.</p></div>`;
-      document.getElementById('panelSubtitle').textContent = 'Aguardando configuração';
-      document.getElementById('statTotal').textContent = '—';
-      document.getElementById('recordsBadge').textContent = '—';
-      return;
-    }
 
     btn.classList.add('spinning');
     container.innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><p>Carregando registros...</p></div>`;
 
     try {
-      const res = await fetch(APPS_SCRIPT_URL);
-      const json = await res.json();
-      if (json.status === 'ok') {
-        allRecords = json.records || [];
-        document.getElementById('statTotal').textContent = allRecords.length;
-        document.getElementById('recordsBadge').textContent = allRecords.length;
-        filterRecords();
-      } else throw new Error(json.message);
+      const snapshot = await db.collection('atendimentos').orderBy('registrado_em', 'desc').get();
+      allRecords = [];
+      snapshot.forEach(doc => {
+        allRecords.push({ id: doc.id, ...doc.data() });
+      });
+      
+      document.getElementById('statTotal').textContent = allRecords.length;
+      document.getElementById('recordsBadge').textContent = allRecords.length;
+      filterRecords();
     } catch (error) {
       console.error('Erro:', error);
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h3>Erro ao carregar</h3><p>Verifique se a URL do Apps Script está correta e a implantação está como "Qualquer pessoa".</p></div>`;
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h3>Erro ao carregar</h3><p>Verifique se o Firebase está configurado corretamente.</p></div>`;
       document.getElementById('panelSubtitle').textContent = 'Erro ao carregar';
     }
 
