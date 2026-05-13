@@ -467,11 +467,16 @@
   // =====================================================
   //  ⚙️  COLE AQUI A URL DO SEU GOOGLE APPS SCRIPT
   // =====================================================
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/d/{SCRIPT_ID}/usercache';
-  // Substitua {SCRIPT_ID} pela sua ID do Apps Script (veja as instruções abaixo)
+  const APPS_SCRIPT_URL = '';
+  // Exemplo: 'https://script.google.com/macros/d/AKfycbxXXXXXXXXXXXXXXX/usercache'
   // =====================================================
 
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('{SCRIPT_ID}')) {
+  // Valida se a URL foi configurada
+  function isURLConfigured() {
+    return APPS_SCRIPT_URL && APPS_SCRIPT_URL.trim().length > 0 && !APPS_SCRIPT_URL.includes('COLE') && !APPS_SCRIPT_URL.includes('{');
+  }
+
+  if (!isURLConfigured()) {
     document.getElementById('configBanner').classList.add('visible');
   }
 
@@ -515,8 +520,9 @@
   document.getElementById('mainForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('{SCRIPT_ID}')) {
-      showToast('Configure a URL do Apps Script primeiro!', 'error'); return;
+    if (!isURLConfigured()) {
+      showToast('Configure a URL do Apps Script primeiro!', 'error');
+      return;
     }
 
     const required = this.querySelectorAll('[required]');
@@ -553,7 +559,8 @@
       } else {
         showToast('Erro ao salvar. Tente novamente.', 'error');
       }
-    } catch {
+    } catch (error) {
+      console.error('Erro:', error);
       showToast('Erro de conexão. Verifique a URL.', 'error');
     }
 
@@ -580,7 +587,7 @@
     const container = document.getElementById('recordsContainer');
     const btn = document.getElementById('btnRefresh');
 
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('{SCRIPT_ID}')) {
+    if (!isURLConfigured()) {
       container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><h3>URL não configurada</h3><p>Cole a URL do Apps Script no JavaScript para ativar o painel.</p></div>`;
       document.getElementById('panelSubtitle').textContent = 'Aguardando configuração';
       document.getElementById('statTotal').textContent = '—';
@@ -600,7 +607,8 @@
         document.getElementById('recordsBadge').textContent = allRecords.length;
         filterRecords();
       } else throw new Error(json.message);
-    } catch {
+    } catch (error) {
+      console.error('Erro:', error);
       container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h3>Erro ao carregar</h3><p>Verifique se a URL do Apps Script está correta e a implantação está como "Qualquer pessoa".</p></div>`;
       document.getElementById('panelSubtitle').textContent = 'Erro ao carregar';
     }
