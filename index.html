@@ -72,6 +72,27 @@
     background: linear-gradient(90deg, transparent, #B09FFF, #7F77DD, #B09FFF, transparent);
   }
 
+  .header-content {
+    display: flex; align-items: center; justify-content: center; gap: 2rem; flex-wrap: wrap;
+  }
+
+  .header-mascot {
+    width: 120px; height: 120px; flex-shrink: 0;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .header-mascot img {
+    width: 100%; height: 100%; object-fit: contain;
+    filter: drop-shadow(0 8px 24px rgba(176,159,255,0.4));
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .header-text { flex: 1; min-width: 200px; }
+
   .header-icon {
     display: inline-flex; align-items: center; justify-content: center;
     width: 64px; height: 64px;
@@ -133,6 +154,9 @@
   @media (max-width: 600px) {
     .grid-2 { grid-template-columns: 1fr; }
     .col-span-2 { grid-column: span 1; }
+    .header-content { flex-direction: column; gap: 1rem; }
+    .header-mascot { width: 100px; height: 100px; }
+    .header h1 { font-size: 1.5rem; }
   }
 
   .field { display: flex; flex-direction: column; gap: 6px; }
@@ -276,11 +300,18 @@
 <div class="page-wrapper">
 
   <div class="header">
-    <div class="header-icon">
-      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+    <div class="header-content">
+      <div class="header-mascot">
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjwhLS0gQm9keSAtLT4KPGC7CjwhLS0gQXJtIExlZnQgLS0+Cjwvc3ZnPg==" alt="Mascote Follow UP">
+      </div>
+      <div class="header-text">
+        <div class="header-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <h1>Follow UP <span>Cardapio Web</span></h1>
+        <p>Preencha todos os campos abaixo para registrar o atendimento</p>
+      </div>
     </div>
-    <h1>Follow UP <span>Cardapio Web</span></h1>
-    <p>Preencha todos os campos abaixo para registrar o atendimento</p>
   </div>
 
   <div class="tabs-bar">
@@ -441,11 +472,11 @@
   <span id="toastMsg">Atendimento registrado!</span>
 </div>
 
-<!-- Firebase SDK v9+ (Modular) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
 
+<script>
   // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyD2AuItmd80QrjOXZ0wHQ2J3g8kKAf3x0",
@@ -456,26 +487,11 @@
     appId: "1:211959712808:web:2da01a33cba8271c1839fd"
   };
 
-  let db;
-  let allRecords = [];
-
   // Inicializar Firebase
-  try {
-    const app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    console.log("Firebase inicializado com sucesso");
-  } catch (error) {
-    console.error("Erro ao inicializar Firebase:", error);
-    showToast("Erro ao conectar ao banco de dados", "error");
-  }
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  // Expor funções globais
-  window.switchTab = switchTab;
-  window.loadRecords = loadRecords;
-  window.filterRecords = filterRecords;
-  window.clearForm = clearForm;
-  window.toggleRecord = toggleRecord;
-  window.showToast = showToast;
+  let allRecords = [];
 
   // TABS
   function switchTab(tab, btn) {
@@ -515,11 +531,6 @@
   document.getElementById('mainForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    if (!db) {
-      showToast("Banco de dados não inicializado", "error");
-      return;
-    }
-
     const required = this.querySelectorAll('[required]');
     let valid = true;
     required.forEach(el => {
@@ -542,7 +553,7 @@
     formData.registrado_em = new Date().toISOString();
 
     try {
-      await addDoc(collection(db, 'atendimentos'), formData);
+      await db.collection('atendimentos').add(formData);
       showToast('Atendimento registrado com sucesso!', 'success');
       this.reset();
       document.getElementById('data').valueAsDate = new Date();
@@ -573,11 +584,6 @@
 
   // LOAD FROM FIRESTORE
   async function loadRecords() {
-    if (!db) {
-      showToast("Banco de dados não inicializado", "error");
-      return;
-    }
-
     const container = document.getElementById('recordsContainer');
     const btn = document.getElementById('btnRefresh');
 
@@ -585,8 +591,7 @@
     container.innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><p>Carregando registros...</p></div>`;
 
     try {
-      const q = query(collection(db, 'atendimentos'), orderBy('registrado_em', 'desc'));
-      const snapshot = await getDocs(q);
+      const snapshot = await db.collection('atendimentos').orderBy('registrado_em', 'desc').get();
       allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       document.getElementById('statTotal').textContent = allRecords.length;
       document.getElementById('recordsBadge').textContent = allRecords.length;
