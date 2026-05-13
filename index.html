@@ -233,6 +233,16 @@
   .validation-alert li { margin-bottom: 4px; padding-left: 20px; position: relative; }
   .validation-alert li::before { content: '•'; position: absolute; left: 0; color: var(--danger); font-weight: bold; }
 
+  .header-image {
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem; padding: 1rem;
+  }
+
+  .header-image img {
+    max-width: 180px; height: auto; object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(83,74,183,0.2));
+  }
+
   .footer { text-align: center; margin-top: 1.5rem; font-size: 0.78rem; color: rgba(255,255,255,0.3); letter-spacing: 0.04em; }
   .char-count { font-size: 0.72rem; color: #b0aec8; text-align: right; margin-top: 2px; }
 
@@ -334,6 +344,15 @@
   .btn-modal-confirm { background: var(--danger); color: white; }
   .btn-modal-confirm:hover { background: #b84a22; }
 
+  .password-field {
+    display: flex; flex-direction: column; gap: 6px; margin-top: 1rem;
+  }
+
+  .password-field label { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.02em; }
+  .password-field input { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--text-primary); background: var(--surface); outline: none; }
+  .password-field input:focus { border-color: var(--purple-400); background: white; box-shadow: 0 0 0 3px rgba(127,119,221,0.15); }
+  .password-field input.error { border-color: var(--danger); background: rgba(216, 90, 48, 0.08); }
+
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
@@ -351,6 +370,9 @@
 <div class="page-wrapper">
 
   <div class="header">
+    <div class="header-image">
+      <img src="data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='30' y='30' width='140' height='140' fill='%239D4EDD' rx='20'/%3E%3Crect x='45' y='45' width='110' height='110' fill='%23FFD60A' rx='15'/%3E%3Cpath d='M85 80 Q85 65 95 65 Q105 65 105 80' fill='%23000000'/%3E%3Ccircle cx='95' cy='75' r='6' fill='white'/%3E%3Cpath d='M80 95 Q90 90 110 100' fill='none' stroke='%239D4EDD' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M75 105 Q85 110 125 105' fill='none' stroke='%239D4EDD' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" alt="Mascote Cardapio" style="max-width: 150px;">
+    </div>
     <div class="header-icon">
       <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
     </div>
@@ -573,6 +595,14 @@
       </div>
       <h3>Apagar Registro?</h3>
       <p>Esta ação não pode ser desfeita. O registro será removido permanentemente do sistema.</p>
+      <div class="password-field">
+        <label for="supervisorPassword">Senha do Supervisor</label>
+        <input type="password" id="supervisorPassword" placeholder="Digite a senha para confirmar">
+        <div class="error-message" id="passwordError" style="display:none;">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Senha incorreta</span>
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-modal-cancel" onclick="closeDeleteModal()">Cancelar</button>
@@ -589,6 +619,14 @@
       </div>
       <h3>Apagar Todos os Registros?</h3>
       <p>Esta ação é irreversível. Todos os <strong id="allRecordCount">0</strong> registros serão removidos permanentemente.</p>
+      <div class="password-field">
+        <label for="supervisorPasswordAll">Senha do Supervisor</label>
+        <input type="password" id="supervisorPasswordAll" placeholder="Digite a senha para confirmar">
+        <div class="error-message" id="passwordErrorAll" style="display:none;">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Senha incorreta</span>
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-modal-cancel" onclick="closeDeleteAllModal()">Cancelar</button>
@@ -623,6 +661,7 @@
 
   let allRecords = [];
   let recordToDelete = null;
+  const SUPERVISOR_PASSWORD = "Cardapinho 2026";
 
   // TABS
   function switchTab(tab, btn) {
@@ -838,15 +877,30 @@
 
   function openDeleteModal(id) {
     recordToDelete = id;
+    document.getElementById('supervisorPassword').value = '';
+    document.getElementById('passwordError').style.display = 'none';
+    document.getElementById('supervisorPassword').classList.remove('error');
     document.getElementById('deleteModal').classList.add('show');
   }
 
   function closeDeleteModal() {
     document.getElementById('deleteModal').classList.remove('show');
     recordToDelete = null;
+    document.getElementById('supervisorPassword').value = '';
+    document.getElementById('passwordError').style.display = 'none';
   }
 
   async function confirmDeleteRecord() {
+    const password = document.getElementById('supervisorPassword').value;
+    const passwordInput = document.getElementById('supervisorPassword');
+    const passwordError = document.getElementById('passwordError');
+
+    if (password !== SUPERVISOR_PASSWORD) {
+      passwordInput.classList.add('error');
+      passwordError.style.display = 'flex';
+      return;
+    }
+
     if (!recordToDelete) return;
 
     try {
@@ -862,14 +916,29 @@
 
   function openDeleteAllModal() {
     document.getElementById('allRecordCount').textContent = allRecords.length;
+    document.getElementById('supervisorPasswordAll').value = '';
+    document.getElementById('passwordErrorAll').style.display = 'none';
+    document.getElementById('supervisorPasswordAll').classList.remove('error');
     document.getElementById('deleteAllModal').classList.add('show');
   }
 
   function closeDeleteAllModal() {
     document.getElementById('deleteAllModal').classList.remove('show');
+    document.getElementById('supervisorPasswordAll').value = '';
+    document.getElementById('passwordErrorAll').style.display = 'none';
   }
 
   async function confirmDeleteAll() {
+    const password = document.getElementById('supervisorPasswordAll').value;
+    const passwordInput = document.getElementById('supervisorPasswordAll');
+    const passwordError = document.getElementById('passwordErrorAll');
+
+    if (password !== SUPERVISOR_PASSWORD) {
+      passwordInput.classList.add('error');
+      passwordError.style.display = 'flex';
+      return;
+    }
+
     const batch = db.batch();
     allRecords.forEach(record => {
       batch.delete(db.collection('atendimentos').doc(record.id));
@@ -964,6 +1033,21 @@
   });
   document.getElementById('deleteAllModal').addEventListener('click', (e) => {
     if (e.target === document.getElementById('deleteAllModal')) closeDeleteAllModal();
+  });
+
+  // Validar senha em tempo real
+  document.getElementById('supervisorPassword').addEventListener('input', function() {
+    if (this.classList.contains('error')) {
+      document.getElementById('passwordError').style.display = 'none';
+      this.classList.remove('error');
+    }
+  });
+
+  document.getElementById('supervisorPasswordAll').addEventListener('input', function() {
+    if (this.classList.contains('error')) {
+      document.getElementById('passwordErrorAll').style.display = 'none';
+      this.classList.remove('error');
+    }
   });
 </script>
 </body>
